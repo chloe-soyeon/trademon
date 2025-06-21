@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.trademon.mapper.ITradeAssetMapper">
+
+    <!-- 🔹 거래 저장 -->
+    <insert id="insertTradeAsset" parameterType="kr.trademon.dto.TradeAssetDTO">
+        INSERT INTO TRADE_ASSET (
+            TRADE_ID, USER_EMAIL, ASSET_TYPE, ASSET_CODE, ASSET_NAME,
+            TRADE_TYPE, QUNTITY, PRICE, TRADE_TIME
+        ) VALUES (
+                     #{tradeId}, #{userEmail}, #{assetType}, #{assetCode}, #{assetName},
+                     #{tradeType}, #{quntity}, #{price}, #{tradeTime}
+                 )
+    </insert>
+
+    <!-- 🔹 특정 시점까지의 수량 합계 (백테스트용) -->
+    <select id="sumQuantityUntil" resultType="java.math.BigDecimal">
+        SELECT IFNULL(SUM(QUNTITY), 0)
+        FROM TRADE_ASSET
+        WHERE USER_EMAIL = #{userEmail}
+          AND ASSET_CODE = #{assetCode}
+          AND TRADE_TYPE = #{tradeType}
+          AND TRADE_TIME &lt;= #{untilTime}
+    </select>
+
+    <!-- 🔹 전체 매수 금액 -->
+    <select id="sumTotalBuyAmount" resultType="java.math.BigDecimal">
+        SELECT IFNULL(SUM(QUNTITY * PRICE), 0)
+        FROM TRADE_ASSET
+        WHERE USER_EMAIL = #{userEmail}
+          AND TRADE_TYPE = 'BUY'
+    </select>
+
+    <!-- 🔹 전체 매도 금액 -->
+    <select id="sumTotalSellAmount" resultType="java.math.BigDecimal">
+        SELECT IFNULL(SUM(QUNTITY * PRICE), 0)
+        FROM TRADE_ASSET
+        WHERE USER_EMAIL = #{userEmail}
+          AND TRADE_TYPE = 'SELL'
+    </select>
+
+    <!-- 🔹 현재 보유 종목 (잔고 > 0) -->
+    <select id="getCurrentHoldings" resultType="kr.trademon.dto.TradeAssetDTO">
+        SELECT
+            ASSET_TYPE,
+            ASSET_CODE,
+            ASSET_NAME,
+            SUM(CASE WHEN TRADE_TYPE = 'BUY' THEN QUNTITY ELSE -QUNTITY END) AS QUNTITY
+        FROM TRADE_ASSET
+        WHERE USER_EMAIL = #{userEmail}
+        GROUP BY ASSET_TYPE, ASSET_CODE, ASSET_NAME
+        HAVING QUNTITY > 0
+    </select>
+
+    <!-- 🔹 특정 종목의 매수 금액 합계 -->
+    <select id="sumBuyAmountForAsset" resultType="java.math.BigDecimal">
+        SELECT IFNULL(SUM(QUNTITY * PRICE), 0)
+        FROM TRADE_ASSET
+        WHERE USER_EMAIL = #{userEmail}
+          AND ASSET_CODE = #{assetCode}
+          AND TRADE_TYPE = 'BUY'
+          AND QUNTITY > 0
+    </select>
+
+    <!-- 🔹 전체 실현 손익 (매도 자산 기준 손익 합산) -->
+    <select id="sumRealizedProfit" resultType="java.math.BigDecimal">
+        SELECT IFNULL(SUM(
+                              CASE WHEN TRADE_TYPE = 'SELL' THEN
+                                       (PRICE - (
+                                           SELECT AVG(PRICE)
+                                           FROM TRADE_ASSET b
+                                           WHERE b.USER_EMAIL = a.USER_EMAIL
+                                             AND b.ASSET_CODE = a.ASSET_CODE
+                                             AND b.TRADE_TYPE = 'BUY'
+                                       )) * QUNTITY
+                                   ELSE 0 END
+                      ), 0)
+        FROM TRADE_ASSET a
+        WHERE USER_EMAIL = #{userEmail}
+    </select>
+
+    <!-- 🔹 사용자 거래 전체 삭제 (자산 초기화용) -->
+    <delete id="deleteAllByUserEmail">
+        DELETE FROM TRADE_ASSET
+        WHERE USER_EMAIL = #{userEmail}
+    </delete>
+
+    <select id="getAllTradesByUser" resultType="kr.trademon.dto.TradeAssetDTO">
+        SELECT *
+        FROM TRADE_ASSET
+        WHERE USER_EMAIL = #{userEmail}
+        ORDER BY TRADE_TIME ASC
+    </select>
+
+    <!-- 🔹 날짜별 자산 변화 추이 -->
+    <select id="getDailyAssetSummary" resultType="map">
+        SELECT
+            DATE(TRADE_TIME) AS tradeDate,
+            SUM(CASE WHEN TRADE_TYPE = 'BUY' THEN -QUNTITY * PRICE
+            WHEN TRADE_TYPE = 'SELL' THEN QUNTITY * PRICE
+            ELSE 0 END) AS amountChange
+        FROM TRADE_ASSET
+        WHERE USER_EMAIL = #{userEmail}
+        GROUP BY DATE(TRADE_TIME)
+        ORDER BY tradeDate ASC
+    </select>
+
+    <select id="getTradeHistory" parameterType="string" resultType="kr.trademon.dto.TradeAssetDTO">
+        SELECT *
+        FROM TRADE_ASSET
+        WHERE USER_EMAIL = #{userEmail}
+        ORDER BY TRADE_TIME DESC
+    </select>
+
+    <!-- 🔹 거래 내역 (매수/매도 타입 필터링) -->
+    <select id="getTradeHistoryByType" resultType="kr.trademon.dto.TradeAssetDTO">
+        SELECT *
+        FROM TRADE_ASSET
+        WHERE USER_EMAIL = #{userEmail}
+          AND TRADE_TYPE = #{tradeType}
+        ORDER BY TRADE_TIME DESC
+    </select>
+
+
+    <select id="sumQuantityForAsset" resultType="BigDecimal">
+        SELECT SUM(QUNTITY)
+        FROM TRADE_ASSET
+        WHERE USER_EMAIL = #{userEmail}
+          AND ASSET_CODE = #{assetCode}
+          AND TRADE_TYPE = #{tradeType}
+    </select>
+    <!-- 🔹 실보유 기준 매입금액 계산 (매도 수량을 제외한 매수 내역에서 최신순으로 누적) -->
+    <select id="getEffectiveBuyAmount" resultType="java.math.BigDecimal">
+        SELECT IFNULL(SUM(QUNTITY * PRICE), 0)
+        FROM TRADE_ASSET
+        WHERE USER_EMAIL = #{userEmail}
+          AND ASSET_CODE = #{assetCode}
+          AND TRADE_TYPE = 'BUY'
+    </select>
+
+
+    <!-- getAllBuyTradesForAsset -->
+    <select id="getAllBuyTradesForAsset" resultType="kr.trademon.dto.TradeAssetDTO">
+        SELECT QUNTITY, PRICE, TRADE_TIME
+        FROM TRADE_ASSET
+        WHERE USER_EMAIL = #{userEmail}
+          AND ASSET_CODE = #{assetCode}
+          AND TRADE_TYPE = 'BUY'
+        ORDER BY TRADE_TIME ASC
+    </select>
+    <!-- getTotalSellQuantity -->
+    <select id="getTotalSellQuantity" resultType="java.math.BigDecimal">
+        SELECT IFNULL(SUM(QUNTITY), 0)
+        FROM TRADE_ASSET
+        WHERE USER_EMAIL = #{userEmail}
+          AND ASSET_CODE = #{assetCode}
+          AND TRADE_TYPE = 'SELL'
+    </select>
+
+
+
+</mapper>

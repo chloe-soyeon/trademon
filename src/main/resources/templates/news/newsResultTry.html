@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>뉴스 검색</title>
+    <link rel="stylesheet" href="/css/styles.min.css"/>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        html, body {
+            height: auto;
+            min-height: 100%;
+            overflow-y: auto;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding-top: 50px;
+        }
+
+        .search-box {
+            display: flex;
+            margin-bottom: 30px;
+        }
+
+        .search-box input {
+            flex: 1;
+            padding: 10px;
+            font-size: 16px;
+        }
+
+        .search-box button {
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #1c2e61;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        .news-card {
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        .bookmark-btn {
+            position: absolute;
+            right: 15px;
+            top: 15px;
+            font-size: 20px;
+            cursor: pointer;
+            color: #ccc;
+        }
+
+        .bookmark-btn.active {
+            color: gold;
+        }
+
+        .note-box {
+            margin-top: 10px;
+            background-color: #f8f9fa;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            padding: 10px;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+
+        .note-box textarea {
+            width: 100%;
+            height: 70px;
+            resize: none;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            padding: 10px;
+            font-size: 14px;
+            background-color: white;
+            box-sizing: border-box;
+        }
+
+        .save-btn {
+            display: block;
+            margin-top: 8px;
+            margin-left: auto;
+            background-color: #1c2e61;
+            border: none;
+            color: white;
+            padding: 6px 14px;
+            border-radius: 6px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+
+        .save-btn:hover {
+            background-color: #122048;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h2>뉴스 검색</h2>
+
+    <!-- ✅ 로그인 사용자만 스크랩 목록 버튼 보이게 -->
+    <div style="text-align: right; margin-bottom: 10px;" th:if="${session.SS_USER_EMAIL != null}">
+        <a href="/news/scrapList" class="btn btn-outline-secondary" style="font-size: 14px;">
+            📌 스크랩 목록 보기
+        </a>
+    </div>
+
+    <!-- 🔍 검색창 -->
+    <form class="search-box" method="get" action="/news/search">
+        <input type="text" name="keyword" placeholder="검색어를 입력하세요" th:value="${param.keyword}">
+        <button type="submit">검색</button>
+    </form>
+
+    <!-- 🔎 검색 결과 -->
+    <div th:if="${newsList != null}">
+        <div th:each="news : ${newsList}" class="news-card">
+            <div>
+                <strong th:text="${news.title}">뉴스 제목</strong>
+            </div>
+            <div class="mt-2">
+                <a th:href="${news.url}" target="_blank" class="btn btn-outline-primary btn-sm">Link</a>
+            </div>
+
+            <!-- ⭐ 스크랩 버튼 -->
+            <div class="bookmark-btn" th:attr="data-id=${news.newsId}" onclick="toggleScrap(this)">
+                ★
+            </div>
+
+            <!-- 📝 메모창 -->
+            <div class="note-box d-none" th:attr="id='note-box-' + ${news.newsId}">
+                <textarea th:attr="id='note-' + ${news.newsId}" placeholder="메모를 입력하세요"></textarea>
+                <button class="save-btn"
+                        th:attr="data-id=${news.newsId}, data-title=${news.title}, data-url=${news.url}"
+                        onclick="saveNote(this)">
+                    저장하기
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div th:if="${newsList == null}">
+        <p class="text-muted">뉴스 검색을 해주세요.</p>
+    </div>
+</div>
+
+<!-- ✅ JS -->
+<!-- ✅ JS -->
+<script th:inline="javascript">
+    // 👤 로그인 여부 확인 (세션 값 기반)
+    const isLoggedIn = [[${session.SS_USER_EMAIL != null}]];
+
+    function toggleScrap(elem) {
+        if (!isLoggedIn) {
+            Swal.fire({
+                icon: 'warning',
+                title: '로그인 후 이용해주세요 😊',
+                text: '스크랩은 로그인한 사용자만 사용할 수 있어요!',
+                confirmButtonColor: '#1c2e61'
+            });
+            return;
+        }
+
+        const newsId = elem.getAttribute("data-id");
+        const noteBox = document.getElementById("note-box-" + newsId);
+        elem.classList.toggle("active");
+        noteBox.classList.toggle("d-none");
+    }
+
+    function saveNote(btn) {
+        if (!isLoggedIn) {
+            Swal.fire({
+                icon: 'warning',
+                title: '로그인 후 이용해주세요 😊',
+                text: '스크랩은 로그인한 사용자만 사용할 수 있어요!',
+                confirmButtonColor: '#1c2e61'
+            });
+            return;
+        }
+
+        const newsId = btn.dataset.id;
+        const title = btn.dataset.title;
+        const url = btn.dataset.url;
+        const note = document.getElementById("note-" + newsId).value;
+
+        const payload = {
+            newsId: newsId,
+            title: title,
+            url: url,
+            note: note
+        };
+
+        fetch('/news/scrap', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(payload)
+        }).then(res => {
+            if (res.status === 200) {
+                Swal.fire({
+                    icon: 'success',
+                    title: '스크랩 완료!',
+                    text: '즐겨찾기 목록에서 확인할 수 있어요.',
+                    confirmButtonColor: '#1c2e61'
+                });
+            } else {
+                Swal.fire({
+                    icon: 'error',
+                    title: '실패',
+                    text: '스크랩 중 오류가 발생했습니다.',
+                    confirmButtonColor: '#1c2e61'
+                });
+            }
+        });
+    }
+</script>
+
+</body>
+</html>

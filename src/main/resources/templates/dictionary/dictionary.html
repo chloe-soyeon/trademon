@@ -1,0 +1,319 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Trade Mon | 암호화폐</title>
+    <link rel="shortcut icon" type="/images/head_logo.png" href="/images/logos/head_logo.png"/>
+    <link rel="stylesheet" href="/css/styles.min.css"/>
+    <script src="https://unpkg.com/@dotlottie/player-component@2.7.12/dist/dotlottie-player.mjs" type="module"></script>
+    <script src="https://unpkg.com/lightweight-charts@4.1.1/dist/lightweight-charts.standalone.production.js"></script>
+    <!-- head 태그 안쪽에 SweetAlert2 추가 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
+    <script src="https://unpkg.com/@dotlottie/player-component@2.7.12/dist/dotlottie-player.mjs" type="module"></script>
+
+
+
+    <style>
+        /* 🔍 자동완성 검색창 스타일 */
+        .search-wrapper {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+
+        #suggestions {
+            position: absolute;
+            top: 105%;
+            left: 0;
+            right: 0;
+            z-index: 10;
+            background: #fff;
+            border: 1px solid #ddd;
+            border-radius: 0 0 12px 12px;
+            max-height: 200px;
+            overflow-y: auto;
+            display: none;
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+        }
+
+        #suggestions div {
+            padding: 10px 16px;
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+
+        #suggestions div:hover {
+            background-color: #f1f1f1;
+        }
+
+        @media (max-width: 576px) {
+            #corpName {
+                font-size: 0.9rem;
+                padding: 10px 12px;
+                padding-left: 40px;
+            }
+        }
+
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: auto;
+        }
+
+        .page-wrapper {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .body-wrapper {
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        #resultTable {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        #candleChart {
+            width: 100%;
+            height: 400px;
+            background: #fff;
+            border: none;
+            border-radius: 10px;
+            overflow: hidden;
+            box-sizing: border-box;
+        }
+
+        .tv-lightweight-charts table,
+        .tv-lightweight-charts td {
+            border: none !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            border-spacing: 0 !important;
+        }
+
+        .tv-lightweight-charts canvas {
+            display: block;
+            box-sizing: border-box;
+        }
+
+        .card-header {
+            padding: var(--bs-card-cap-padding-y) var(--bs-card-cap-padding-x);
+            margin-bottom: 0;
+            color: var(--bs-card-cap-color);
+            background-color: var(--bs-card-cap-bg);
+            border-bottom: var(--bs-card-border-width) solid var(--bs-card-border-color);
+        }
+        .user-greeting {
+            color: #273C6E;
+            font-size: 1.1rem;
+            line-height: 1.3;
+        }
+
+        /* 모바일일 때 상태 메시지 숨김 */
+        @media (max-width: 480px) {
+            .user-greeting {
+                font-size: 0.85rem;
+            }
+
+            .user-status-msg {
+                display: none;
+            }
+        }
+
+
+
+
+    </style>
+</head>
+
+<body>
+<!--  Body Wrapper -->
+<div class="page-wrapper" id="main-wrapper" data-layout="vertical" data-navbarbg="skin6" data-sidebartype="full"
+     data-sidebar-position="fixed" data-header-position="fixed">
+    <!-- Sidebar Start -->
+    <aside class="left-sidebar">
+        <!-- Sidebar scroll-->
+        <div>
+            <div class="brand-logo d-flex align-items-center justify-content-center" style="
+    padding-top: 1rem;">
+                <a href="/user/index" class="text-nowrap logo-img">
+                    <img src="/images/logos/TradeMon_Logo.png" alt=""/>
+                </a>
+                <div class="close-btn d-xl-none d-block sidebartoggler cursor-pointer" id="sidebarCollapse">
+                    <i class="ti ti-x fs-8"></i>
+                </div>
+            </div>
+            <!-- Sidebar navigation-->
+            <nav class="sidebar-nav scroll-sidebar" data-simplebar="">
+                <ul id="sidebarnav">
+                    <li class="nav-small-cap">
+                        <i class="ti ti-dots nav-small-cap-icon fs-6"></i>
+                        <!--              <span class="hide-menu">Home</span>-->
+                    </li>
+                    <li class="sidebar-item">
+                        <a class="sidebar-link" href="/dashboard" aria-expanded="false">
+                <span>
+                  <iconify-icon icon="solar:clipboard-list-bold" class="fs-6"></iconify-icon>
+                </span>
+                            <span class="hide-menu">마이페이지</span>
+                        </a>
+                    </li>
+                    <li class="sidebar-item">
+                        <a class="sidebar-link" href="/stock/view" aria-expanded="false" aria-current="page">
+    <span>
+      <iconify-icon icon="solar:graph-up-bold" class="fs-6"></iconify-icon>
+    </span>
+                            <span class="hide-menu">주식</span>
+                        </a>
+                    </li>
+
+                    <li class="sidebar-item">
+                        <a class="sidebar-link  " href="/coin/view" aria-expanded="false">
+                <span>
+                  <iconify-icon icon="solar:wallet-money-bold-duotone" class="fs-6"></iconify-icon>
+                </span>
+                            <span class="hide-menu">암호화폐</span>
+                        </a>
+                    </li>
+                    <li class="sidebar-item">
+                        <a class="sidebar-link" href="/news" aria-expanded="false">
+                <span>
+                  <iconify-icon icon="solar:bill-list-bold-duotone" class="fs-6"></iconify-icon>
+                </span>
+                            <span class="hide-menu">뉴스</span>
+                        </a>
+                    </li>
+                    <li class="sidebar-item">
+                        <a class="sidebar-link active" href="/word/search" aria-expanded="false">
+                <span>
+                  <iconify-icon icon="solar:bookmark-circle-bold" class="fs-6"></iconify-icon>
+                </span>
+                            <span class="hide-menu">용어 사전</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+            <!-- End Sidebar navigation -->
+        </div>
+        <!-- End Sidebar scroll-->
+    </aside>
+    <!--  Sidebar End -->
+    <!--  Main wrapper -->
+    <div class="body-wrapper">
+        <!--  Header Start -->
+        <header class="app-header">
+            <nav class="navbar navbar-expand-lg navbar-light">
+                <ul class="navbar-nav">
+                    <li class="nav-item d-block d-xl-none">
+                        <a class="nav-link sidebartoggler nav-icon-hover" id="headerCollapse" href="javascript:void(0)">
+                            <i class="ti ti-menu-2"></i>
+                        </a>
+                    </li>
+                </ul>
+                <div class="navbar-collapse justify-content-end px-0" id="navbarNav">
+
+
+                    <ul class="navbar-nav flex-row ms-auto align-items-center justify-content-end">
+
+                        <!-- 로그인된 경우 -->
+                        <li th:if="${session.SS_USER_NAME != null}" class="d-flex align-items-center">
+                            <div class="me-2 fw-bold user-greeting">
+                                <span th:text="${session.SS_USER_NAME}">사용자</span>님 ✨
+                                <span class="user-status-msg">슬기로운 투자 생활 중!</span>
+                            </div>
+                            <a href="/user/logout" class="btn btn-outline-danger">로그아웃</a>
+                        </li>
+
+
+                        <!-- 로그인 안 된 경우 -->
+                        <li th:if="${session.SS_USER_NAME == null}">
+                            <a href="/user/login" class="btn btn-primary me-2">로그인</a>
+                        </li>
+                    </ul>
+
+                </div>
+            </nav>
+        </header>
+        <!--  Header End -->
+        <div class="container-fluid" style="padding-top: 10rem;">
+            <div class="card">
+                <div class="card-body">
+
+                    <!-- 통합된 UI 코드 시작 -->
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="card mb-3">
+                                <div class="card-header">
+                                    <!-- coin.html 내 input -->
+                                    <div class="search-wrapper">
+                                        <form action="/word/search" method="get" class="input-group mb-3 mt-4">
+                                            <input type="text" name="query" class="form-control" placeholder="검색어를 입력하세요" required>
+                                            <button type="submit" class="btn btn-primary">검색</button>
+                                        </form>
+
+                                    </div>
+
+                                </div>
+                                <!-- 결과 표시 -->
+                                <!-- 🔄 검색 결과 없을 때: Lottie -->
+                                <div th:if="${word == null and errorMsg == null}" class="text-center py-5">
+                                    <dotlottie-player
+                                            src="https://lottie.host/a9545a62-ff73-416f-8e34-7525a5bd396f/8uiBcvtiqH.lottie"
+                                            background="transparent"
+                                            speed="1"
+                                            style="width: 300px; height: 300px; margin: 0 auto;"
+                                            loop autoplay>
+                                    </dotlottie-player>
+                                    <h5 class="mt-4 fw-bold">헷갈리는 경제 용어? 여기에 물어보세요 🧐</h5>
+                                </div>
+
+                                <!-- ✅ 검색 결과 있을 때 -->
+                                <div th:if="${word != null}" class="card mt-4 p-4 shadow-sm"
+                                     style="background-color: #f9f9fc; border-radius: 12px; line-height: 1.8; font-size: 16px;">
+                                    <h4 th:text="${word.wordTitle}" style="font-weight: bold; font-size: 24px; color: #1c2e61;">용어 제목</h4>
+                                    <p th:utext="${#strings.replace(word.wordExplanation, '\n', '<br><br>')}"></p>
+                                </div>
+
+                                <!-- 에러 메시지 -->
+                                <div th:if="${errorMsg != null}" class="alert alert-danger mt-3" th:text="${errorMsg}"></div>
+
+                            </div>
+
+
+
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 통합된 UI 코드 끝 -->
+
+
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+<script src="/libs/jquery/dist/jquery.min.js"></script>
+<script src="/libs/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+<script src="/libs/apexcharts/dist/apexcharts.min.js"></script>
+<script src="/libs/simplebar/dist/simplebar.js"></script>
+<script src="/js/sidebarmenu.js"></script>
+<script src="/js/app.min.js"></script>
+<!--<script src="/js/dashboard.js"></script>-->
+<script src="https://cdn.jsdelivr.net/npm/iconify-icon@1.0.8/dist/iconify-icon.min.js"></script>
+<script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
+<!--<script src="/js/coin_v2.js"></script>-->
+
+</body>
+
+</html>

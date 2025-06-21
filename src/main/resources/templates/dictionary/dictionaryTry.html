@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>용어 사전 검색</title>
+    <link rel="stylesheet" href="/css/styles.min.css">
+</head>
+<body>
+<div class="container mt-5">
+    <h2>📘 용어 사전 검색</h2>
+
+    <form action="/word/search" method="get" class="input-group mb-3 mt-4">
+        <input type="text" name="query" class="form-control" placeholder="검색어를 입력하세요" required>
+        <button type="submit" class="btn btn-primary">검색</button>
+    </form>
+
+    <!-- 결과 표시 -->
+
+    <div th:if="${word != null}" class="card mt-4 p-4 shadow-sm"
+         style="background-color: #f9f9fc; border-radius: 12px; line-height: 1.8; font-size: 16px;">
+        <h4 th:text="${word.wordTitle}" style="font-weight: bold; font-size: 24px; color: #1c2e61;">용어 제목</h4>
+        <p th:utext="${#strings.replace(word.wordExplanation, '\n', '<br><br>')}"></p>
+    </div>
+
+    <!-- 에러 메시지 -->
+    <div th:if="${errorMsg != null}" class="alert alert-danger mt-3" th:text="${errorMsg}"></div>
+</div>
+</body>
+</html>

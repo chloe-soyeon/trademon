@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- JAVA와 연결할 Mapper 파일 설정 -->
+<mapper namespace="kr.trademon.mapper.IUserInfoMapper">
+
+    <!-- 회원 가입 전 이메일 중복체크하기 -->
+    <select id="getEmailExists" parameterType="UserInfoDTO" resultType="UserInfoDTO">
+        SELECT
+            IF(EXISTS (
+                SELECT 1 FROM USER_INFO WHERE USER_EMAIL = #{userEmail}
+            ), 'Y', 'N') AS existsYn
+    </select>
+
+    <!--    <select id="getEmailExists" parameterType="UserInfoDTO" resultType="UserInfoDTO">-->
+<!--        SELECT (CASE WHEN COUNT(1) = 0 THEN 'N' ELSE 'Y') AS existsYn-->
+<!--        FROM USER_INFO-->
+<!--        WHERE USER_EMAIL = #{userEmail}-->
+<!--    </select>-->
+
+    <!-- 회원 가입하기(회원정보 등록하기) -->
+    <insert id="insertUserInfo" parameterType="UserInfoDTO">
+        INSERT INTO USER_INFO
+        (USER_EMAIL,
+         USER_NAME,
+         USER_PWD,
+         USER_PNUM,
+         REG_DT)
+        VALUES (#{userEmail},
+                #{userName},
+                #{userPwd},
+                #{userPnum},
+                NOW())
+    </insert>
+
+    <!-- 로그인을 위해 아이디와 비밀번호가 일치하는지 확인하기 -->
+    <select id="getLogin" parameterType="UserInfoDTO" resultType="UserInfoDTO">
+        SELECT USER_EMAIL, USER_NAME
+        FROM USER_INFO
+        WHERE USER_EMAIL = #{userEmail}
+          AND USER_PWD = #{userPwd}
+    </select>
+
+
+    <!-- 아이디, 비밀번호 찾기에 활용
+     1. 이름과 이메일이 맞다면, 아이디 알려주기
+     2. 아이디, 이름과 이메일이 맞다면, 비밀번호 재설정하기
+     -->
+    <select id="getUserEmail" parameterType="UserInfoDTO" resultType="UserInfoDTO">
+        SELECT USER_EMAIL, USER_NAME
+        FROM USER_INFO
+        WHERE 1=1
+        <if test="userEmail != null and userEmail != ''">
+            AND USER_EMAIL = #{userEmail}
+        </if>
+        AND USER_NAME = #{userName}
+        <if test="userPnum != null and userPnum != ''">
+            AND USER_PNUM = #{userPnum}
+        </if>
+    </select>
+
+
+    <!-- 비밀번호 재설정 -->
+    <update id="updatePassword" parameterType="UserInfoDTO">
+        UPDATE USER_INFO
+        SET USER_PWD = #{userPwd}
+        WHERE USER_EMAIL = #{userEmail}
+    </update>
+
+
+
+</mapper>

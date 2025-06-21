@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>TradeMon | 암호화폐</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="/css/styles.min.css">
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
+    <style>
+        body { background: #f9fbfd; }
+        .container { padding-top: 40px; }
+        .card {
+            background: #fff;
+            border: none;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        .btn-danger { background-color: #f44336; border-color: #f44336; }
+        .btn-primary, .btn-dark { background-color: #1c2e61; border-color: #1c2e61; }
+        .search-container {
+            margin-bottom: 15px;
+            display: flex;
+            gap: 10px;
+        }
+        .search-container input {
+            flex-grow: 1;
+        }
+        ul.ui-autocomplete {
+            z-index: 1000; /* 다른 요소 위에 표시 */
+        }
+    </style>
+
+    <script src="https://cdn.jsdelivr.net/npm/lightweight-charts@4.1.1/dist/lightweight-charts.standalone.production.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.js"></script>
+</head>
+<body>
+<div class="container">
+    <div class="card p-4">
+        <h2 class="mb-3">📈 암호화폐 차트</h2>
+        <div class="search-container">
+            <input type="text" class="form-control" id="searchInput" placeholder="암호화폐 이름 (예: 비트코인)">
+            <button class="btn btn-primary" id="searchButton">검색</button>
+        </div>
+        <h4>현재가: <span id="coinPrice" style="color:#d32f2f"></span> 원</h4>
+        <div id="coinChart" style="width:100%; height:400px;"></div>
+    </div>
+</div>
+
+<script>
+    $(document).ready(function () {
+        let currentCoinCode = "KRW-BTC";
+        let chart = null;
+        let candleSeries = null;
+
+        function updatePrice(coinCode) {
+            $.get("/coin/price", { coinCode: coinCode }, function (price) {
+                $("#coinPrice").text(Number(price).toLocaleString());
+            }).fail(function (xhr, status, error) {
+                console.error("❌ 현재가 불러오기 실패:", error);
+                $("#coinPrice").text("불러오기 실패");
+            });
+        }
+
+        function loadChartData(coinCode) {
+            $.get("/coin/candle", { coinCode: coinCode }, function (data) {
+                console.log(`📦 [${coinCode}] 수신된 data:`, data);
+
+                const chartData = data
+                    .map((item, i) => {
+                        const time = Number(item.time);
+                        const open = Number(item.open);
+                        const high = Number(item.high);
+                        const low = Number(item.low);
+                        const close = Number(item.close);
+
+                        if (!Number.isFinite(time) || !Number.isFinite(open) || !Number.isFinite(high) || !Number.isFinite(low) || !Number.isFinite(close)) {
+                            console.warn(`❌ [${coinCode}] [${i}] 필수 필드 누락 또는 숫자 아님/무한대 → 제외`, item);
+                            return null;
+                        }
+                        return { time, open, high, low, close };
+                    })
+                    .filter(Boolean)
+                    .sort((a, b) => a.time - b.time);
+
+                console.log(`✅ [${coinCode}] 최종 변환 및 정렬된 chartData:`, chartData);
+
+                if (chartData.length > 0) {
+                    if (candleSeries) {
+                        candleSeries.setData(chartData);
+                        chart.timeScale().fitContent();
+                    }
+                } else {
+                    console.error(`⚠️ [${coinCode}] 차트에 표시할 데이터가 없습니다.`);
+                    if (candleSeries) {
+                        candleSeries.setData([]);
+                        chart.timeScale().reset();
+                    }
+                }
+                currentCoinCode = coinCode;
+                updatePrice(currentCoinCode);
+            }).fail(function (xhr, status, error) {
+                console.error(`❌ [${coinCode}] 캔들 데이터 불러오기 실패:`, error);
+                if (candleSeries) {
+                    candleSeries.setData([]);
+                    chart.timeScale().reset();
+                    $("#coinPrice").text("불러오기 실패");
+                }
+            });
+        }
+
+        function initializeChart(coinCode) {
+            chart = LightweightCharts.createChart(document.getElementById("coinChart"), {
+                width: document.getElementById("coinChart").offsetWidth,
+                height: 400,
+                layout: { background: { color: '#ffffff' }, textColor: '#000000' },
+                grid: {
+                    vertLines: { color: '#f0f3fa' },
+                    horzLines: { color: '#f0f3fa' }
+                },
+                crosshair: { mode: LightweightCharts.CrosshairMode.Normal },
+                timeScale: { timeVisible: true, secondsVisible: false }
+            });
+
+            candleSeries = chart.addCandlestickSeries({
+                upColor: '#26a69a',
+                downColor: '#ef5350',
+                borderVisible: false,
+                wickUpColor: '#26a69a',
+                wickDownColor: '#ef5350'
+            });
+
+            loadChartData(coinCode);
+        }
+
+        initializeChart(currentCoinCode);
+
+        $("#searchInput").autocomplete({
+            source: function (request, response) {
+                $.get("/coin/api/crypto/search", { query: request.term }, function (data) {
+                    response($.map(data, function (item) {
+                        return {
+                            label: item.name + " (" + item.code + ")",
+                            value: item.name,
+                            code: item.code
+                        };
+                    }));
+                });
+            },
+            select: function (event, ui) {
+                $("#searchInput").val(ui.item.value);
+                loadChartData(ui.item.code);
+                return false;
+            }
+        });
+
+        $("#searchButton").on("click", function () {
+            const searchText = $("#searchInput").val().trim();
+            $.get("/coin/api/crypto/search", { query: searchText }, function (data) {
+                if (data.length > 0) {
+                    loadChartData(data[0].code); // 첫 번째 결과 사용 (정확도 높이기 위해 추가 로직 필요할 수 있음)
+                } else {
+                    alert("해당하는 암호화폐를 찾을 수 없습니다.");
+                }
+            });
+        });
+
+        window.addEventListener("resize", () => {
+            if (chart) {
+                chart.applyOptions({ width: document.getElementById("coinChart").offsetWidth });
+            }
+        });
+    });
+</script>
+</body>
+</html>

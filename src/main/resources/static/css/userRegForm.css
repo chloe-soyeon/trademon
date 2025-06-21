@@ -1,0 +1,177 @@
+body, html {
+    height: 100%;
+    margin: 0;
+    font-family: 'Pretendard', sans-serif;
+}
+
+.login-container {
+    display: flex;
+    height: 100vh;
+}
+
+.login-left, .login-right {
+    flex: 1;
+    padding: 3rem 5rem;
+    position: relative;
+}
+
+.login-left {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.login-logo {
+    position: absolute;
+    top: 1rem;
+    left: 1rem;
+}
+
+.signup-content {
+    max-width: 420px;
+    width: 100%;
+}
+
+.signup-content h1 {
+    font-size: 2.5rem;
+    font-weight: bold;
+    color: #273C6E;
+}
+
+.signup-content h5 {
+    margin-top: 0.8rem;
+    margin-bottom: 3rem;
+    color: #273C6E;
+}
+
+.form-label {
+    font-weight: 500;
+}
+
+.form-control {
+    height: 48px;
+    font-size: 0.95rem;
+}
+
+.input-group .btn {
+    min-width: 100px;
+}
+
+.btn-primary {
+    background-color: #273C6E;
+    border: none;
+}
+
+.btn-primary:hover {
+    background-color: #1c2f57;
+}
+
+.btn-outline-primary {
+    border-color: #273C6E;
+    color: #273C6E;
+}
+
+.btn-outline-primary:hover {
+    background-color: #273C6E;
+    color: white;
+}
+
+.login-right {
+    background: url('/images/login-bg.png') no-repeat center center;
+    background-size: cover;
+    color: white;
+    text-align: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+}
+
+.login-right img {
+    max-width: 400px;
+    margin-bottom: 1rem;
+}
+
+.login-right h2 {
+    font-size: 2rem;
+    font-weight: bold;
+}
+
+.login-right p {
+    font-size: 1rem;
+    opacity: 0.8;
+}
+
+.find-links {
+    font-size: 0.9rem;
+    color: #6c757d;
+    margin-top: 1rem;
+    text-align: center;
+}
+
+.find-links a {
+    color: #273C6E;
+    text-decoration: none;
+    margin: 0 5px;
+}
+
+@media (max-width: 768px) {
+    .login-container {
+        flex-direction: column;
+    }
+
+    .login-right {
+        display: none;
+    }
+
+    .login-left {
+        align-items: center;
+        padding: 2rem;
+    }
+
+    .login-logo {
+        position: static;
+        margin-bottom: 2rem;
+    }
+}
+
+.btn-dark-rounded {
+    background-color: #273C6E;
+    color: #ffffff;
+    border: none;
+    border-radius: 6px;
+    padding: 8px 20px;
+    height: 48px;
+    font-size: 0.95rem;
+    white-space: nowrap; /* 텍스트 줄바꿈 방지 */
+}
+
+.btn-dark-rounded:hover {
+    background-color: #1d2f56;
+    color: #fff;
+}
+
+@media (max-width: 1024px) {
+    .login-container {
+        flex-direction: column;
+    }
+
+    .login-left, .login-right {
+        padding: 2rem;
+        width: 100%;
+    }
+
+    .login-left {
+        align-items: center;
+    }
+
+    .signup-content {
+        max-width: 100%;
+    }
+
+    .login-logo {
+        position: static;
+        margin-bottom: 1.5rem;
+    }
+}

@@ -1,0 +1,517 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Trade Mon | 마이페이지</title>
+    <link rel="shortcut icon" type="/images/head_logo.png" href="/images/logos/head_logo.png"/>
+    <link rel="stylesheet" href="/css/styles.min.css"/>
+    <link rel="stylesheet" href="/css/table.css"/>
+    <script src="https://unpkg.com/@dotlottie/player-component@2.7.12/dist/dotlottie-player.mjs" type="module"></script>
+    <script src="https://unpkg.com/lightweight-charts@4.1.1/dist/lightweight-charts.standalone.production.js"></script>
+    <!-- head 태그 안쪽에 SweetAlert2 추가 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/echarts/dist/echarts.min.js"></script>
+
+
+    <style>
+
+
+        #suggestions div {
+            padding: 10px 16px;
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+
+        #suggestions div:hover {
+            background-color: #f1f1f1;
+        }
+
+        @media (max-width: 576px) {
+            #corpName {
+                font-size: 0.9rem;
+                padding: 10px 12px;
+                padding-left: 40px;
+            }
+        }
+
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: auto;
+        }
+
+        .page-wrapper {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .body-wrapper {
+            flex: 1;
+            overflow-y: auto;
+        }
+
+
+        .tv-lightweight-charts table,
+        .tv-lightweight-charts td {
+            border: none !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            border-spacing: 0 !important;
+        }
+
+        .tv-lightweight-charts canvas {
+            display: block;
+            box-sizing: border-box;
+        }
+
+
+        #assetChart, #tradePie {
+            width: 100%;
+            height: 400px;
+        }
+
+        .nav-tabs {
+            border-bottom: 2px solid #dee2e6;
+        }
+
+        .nav-tabs .nav-link {
+            background-color: #f8f9fa;
+            color: #555;
+            border: 1px solid transparent;
+            border-top-left-radius: 0.5rem;
+            border-top-right-radius: 0.5rem;
+            margin-right: 5px;
+            padding: 10px 20px;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+
+        .nav-tabs .nav-link:hover {
+            border-color: #d6d6d6 #d6d6d6 #f8f9fa;
+            background-color: #e9ecef;
+            color: #000;
+        }
+
+        .nav-tabs .nav-link.active {
+            color: #1e3468;
+            background-color: #fff;
+            border-color: #dee2e6 #dee2e6 #fff;
+            box-shadow: inset 0 -2px 0 #1e3468;
+        }
+
+        .tab-content {
+            background: #fff;
+            /*border: 1px solid #dee2e6;*/
+            border-top: none;
+            padding: 2rem;
+            border-bottom-left-radius: 0.5rem;
+            border-bottom-right-radius: 0.5rem;
+        }
+
+        /* 각 탭 항목을 50% 너비로 설정 */
+        .nav-tabs .nav-item {
+            flex: 1 1 50%;
+            text-align: center;
+        }
+
+        /* 버튼이 탭 전체 너비를 차지하도록 */
+        .nav-tabs .nav-link {
+            width: 100%;
+            border-radius: 0.5rem 0.5rem 0 0;
+        }
+
+
+        .chart-container > div {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+
+        .loading-wrapper {
+            width: 100%;
+            height: 500px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .user-greeting {
+            color: #273C6E;
+            font-size: 1.1rem;
+            line-height: 1.3;
+        }
+
+        /* 모바일일 때 상태 메시지 숨김 */
+        @media (max-width: 480px) {
+            .user-greeting {
+                font-size: 0.85rem;
+            }
+
+            .user-status-msg {
+                display: none;
+            }
+        }
+
+        #statusImage {
+            transition: transform 0.4s ease;
+        }
+
+        #statusImage:hover {
+            transform: scale(1.15) rotate(3deg);
+        }
+        @keyframes float {
+            0%   { transform: translateY(0); }
+            50%  { transform: translateY(-6px); }
+            100% { transform: translateY(0); }
+        }
+
+        #statusImage.animate-idle {
+            animation: float 2s ease-in-out infinite;
+        }
+
+
+
+    </style>
+</head>
+
+<body>
+<!--  Body Wrapper -->
+<div class="page-wrapper" id="main-wrapper" data-layout="vertical" data-navbarbg="skin6" data-sidebartype="full"
+     data-sidebar-position="fixed" data-header-position="fixed">
+    <!-- Sidebar Start -->
+    <aside class="left-sidebar">
+        <!-- Sidebar scroll-->
+        <div>
+            <div class="brand-logo d-flex align-items-center justify-content-center" style="
+    padding-top: 1rem;">
+                <a href="/user/index" class="text-nowrap logo-img">
+                    <img src="/images/logos/TradeMon_Logo.png" alt=""/>
+                </a>
+                <div class="close-btn d-xl-none d-block sidebartoggler cursor-pointer" id="sidebarCollapse">
+                    <i class="ti ti-x fs-8"></i>
+                </div>
+            </div>
+            <!-- Sidebar navigation-->
+            <nav class="sidebar-nav scroll-sidebar" data-simplebar="">
+                <ul id="sidebarnav">
+                    <li class="nav-small-cap">
+                        <i class="ti ti-dots nav-small-cap-icon fs-6"></i>
+                        <!--              <span class="hide-menu">Home</span>-->
+                    </li>
+                    <li class="sidebar-item">
+                        <a class="sidebar-link active" href="/dashboard" aria-expanded="false">
+                <span>
+                  <iconify-icon icon="solar:clipboard-list-bold" class="fs-6"></iconify-icon>
+                </span>
+                            <span class="hide-menu">마이페이지</span>
+                        </a>
+                    </li>
+                    <li class="sidebar-item">
+                        <a class="sidebar-link" href="/stock/view" aria-expanded="false" aria-current="page">
+    <span>
+      <iconify-icon icon="solar:graph-up-bold" class="fs-6"></iconify-icon>
+    </span>
+                            <span class="hide-menu">주식</span>
+                        </a>
+                    </li>
+
+                    <li class="sidebar-item">
+                        <a class="sidebar-link" href="/coin/view" aria-expanded="false">
+                <span>
+                  <iconify-icon icon="solar:wallet-money-bold-duotone" class="fs-6"></iconify-icon>
+                </span>
+                            <span class="hide-menu">암호화폐</span>
+                        </a>
+                    </li>
+                    <li class="sidebar-item">
+                        <a class="sidebar-link" href="/news" aria-expanded="false">
+                <span>
+                  <iconify-icon icon="solar:bill-list-bold-duotone" class="fs-6"></iconify-icon>
+                </span>
+                            <span class="hide-menu">뉴스</span>
+                        </a>
+                    </li>
+                    <li class="sidebar-item">
+                        <a class="sidebar-link" href="/word/search" aria-expanded="false">
+                <span>
+                  <iconify-icon icon="solar:bookmark-circle-bold" class="fs-6"></iconify-icon>
+                </span>
+                            <span class="hide-menu">용어 사전</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+            <!-- End Sidebar navigation -->
+        </div>
+        <!-- End Sidebar scroll-->
+    </aside>
+    <!--  Sidebar End -->
+    <!--  Main wrapper -->
+    <div class="body-wrapper">
+        <!--  Header Start -->
+        <header class="app-header">
+            <nav class="navbar navbar-expand-lg navbar-light">
+                <ul class="navbar-nav">
+                    <li class="nav-item d-block d-xl-none">
+                        <a class="nav-link sidebartoggler nav-icon-hover" id="headerCollapse" href="javascript:void(0)">
+                            <i class="ti ti-menu-2"></i>
+                        </a>
+                    </li>
+                </ul>
+                <div class="navbar-collapse justify-content-end px-0" id="navbarNav">
+
+
+                    <ul class="navbar-nav flex-row ms-auto align-items-center justify-content-end">
+
+                        <!-- 로그인된 경우 -->
+                        <li th:if="${session.SS_USER_NAME != null}" class="d-flex align-items-center">
+                            <div class="me-2 fw-bold user-greeting">
+                                <span th:text="${session.SS_USER_NAME}">사용자</span>님 ✨
+                                <span class="user-status-msg">슬기로운 투자 생활 중!</span>
+                            </div>
+                            <a href="/user/searchPassword" class="btn btn-primary me-2">회원 정보 수정</a>
+                            <a href="/user/logout" class="btn btn-outline-danger">로그아웃</a>
+                        </li>
+
+
+                        <!-- 로그인 안 된 경우 -->
+                        <li th:if="${session.SS_USER_NAME == null}">
+                            <a href="/user/login" class="btn btn-primary me-2">로그인</a>
+                        </li>
+                    </ul>
+
+                </div>
+            </nav>
+        </header>
+        <!--  Header End -->
+        <div class="container-fluid">
+            <div class="card">
+                <div class="card-body">
+
+                    <!-- 🔽 탭 버튼 -->
+                    <ul class="nav nav-tabs mb-4" id="myPageTab" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="assets-tab" data-bs-toggle="tab"
+                                    data-bs-target="#tab-assets" type="button" role="tab">보유자산
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+
+
+                            <!-- 로그인된 경우 -->
+                            <button class="nav-link" id="history-tab"
+                                    data-bs-toggle="tab"
+                                    data-bs-target="#tab-history"
+                                    type="button"
+                                    role="tab"
+                                    th:if="${session.SS_USER_NAME != null}">
+                                거래 내역
+                            </button>
+
+                            <!-- 로그인 안 된 경우 (비활성화) -->
+                            <button class="nav-link disabled" type="button" role="tab"
+                                    style="cursor: not-allowed; opacity: 0.5;"
+                                    th:if="${session.SS_USER_NAME == null}">
+                                거래 내역
+                            </button>
+
+
+                        </li>
+                    </ul>
+
+                    <div class="tab-content" style="padding-bottom: 0px;">
+                        <!-- 📌 보유자산 탭 -->
+                        <div class="tab-pane fade show active" id="tab-assets" role="tabpanel"
+                             aria-labelledby="assets-tab">
+
+                            <div th:if="${session.SS_USER_NAME == null}" class="text-center">
+                                <dotlottie-player
+                                        src="https://lottie.host/1b4775bb-fb1f-429a-9ab8-cfd92bd6f0c2/Uav25efzRE.lottie"
+                                        background="transparent"
+                                        speed="1"
+                                        style="width: 300px; height: 300px"
+                                        loop
+                                        autoplay
+                                        class="mx-auto d-block"
+                                ></dotlottie-player>
+                                <p class="text-muted mt-3 mb-2">로그인 후 이용 가능한 서비스예요</p>
+                                <p class="text-muted small">서비스 이용을 위해 로그인해 주세요</p>
+                                <a href="/user/login" class="btn btn-outline-primary mt-2 w-auto px-4">로그인 하러 가기</a>
+                            </div>
+
+
+                            <div id="loadingBox" class="loading-wrapper">
+                                <dotlottie-player
+                                        src="https://lottie.host/cea1c370-8673-4b79-ad56-e423bd0c1300/PsohVcEvpm.lottie"
+                                        background="transparent"
+                                        speed="1"
+                                        style="width: 500px; height: 500px"
+                                        loop
+                                        autoplay>
+                                </dotlottie-player>
+                                <p style="margin-top: 20px; color: #666; font-size: 1.1rem;">📈 당신의 투자 몬스터가 100m 전력질주 중!
+                                    곧 도착합니다!!</p>
+                            </div>
+
+
+                            <!-- 💡 여기에 기존 보유자산 전체 코드 삽입 -->
+
+
+                            <div id="assetContent" style="display: none;">
+                                <!-- 통합된 UI 코드 시작 -->
+                                <div class="row">
+                                    <!-- 왼쪽 열 -->
+                                    <div class="col-md-5">
+                                        <ul class="list-group list-group-flush mb-3">
+                                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                                <span class="text-muted">총 자산</span>
+                                                <span id="totalAsset" class="fw-bold text-dark">₩0</span>
+                                            </li>
+                                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                                <span class="text-muted">주문 가능 금액</span>
+                                                <span id="availableCash" class="fw-bold text-primary">₩0</span>
+                                            </li>
+                                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                                <span class="text-muted">총 평가금액</span>
+                                                <span id="totalEval" class="fw-bold text-dark">₩0</span>
+                                            </li>
+                                        </ul>
+                                    </div>
+
+                                    <!-- 오른쪽 열 -->
+                                    <div class="col-md-5">
+                                        <ul class="list-group list-group-flush mb-3">
+                                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                                <span class="text-muted">미실현 손익</span>
+                                                <span id="profit" class="fw-bold text-danger">₩0</span>
+                                            </li>
+                                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                                <span class="text-muted">실현 손익</span>
+                                                <span id="realizedProfit" class="fw-bold text-success">₩0</span>
+                                            </li>
+                                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                                <span class="text-muted">평가수익률</span>
+                                                <span id="rate" class="fw-bold text-danger">0%</span>
+                                            </li>
+                                        </ul>
+
+                                    </div>
+                                    <!-- 수익률 상태 이미지 -->
+                                    <div class="col-md-2">
+                                        <div id="statusImageBox" class="text-center mt-2">
+                                            <img id="statusImage" class="animate-idle" src="/images/happy.png" alt="수익률 상태" style="height: 100px;">
+                                            <div id="statusMessage" style="margin-top: 6px; font-size: 0.9rem; color: #666;">오늘도 수익 챙겼지롱~ ✨</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+
+                                <!-- 📄 차트 영역 -->
+                                <div class="card md-3">
+                                    <div class="row mt-5">
+
+                                        <div class="col-md-6 text-center">
+                                            <h5>📊 보유 비중</h5>
+                                            <div id="tradePie" style="width: 100%; height: 400px;"></div>
+                                        </div>
+
+                                        <div class="col-md-6 text-center">
+                                            <h5>📈 종목별 수익 분석</h5>
+                                            <div id="assetChart" style="width: 100%; height: 400px;"></div>
+                                        </div>
+
+                                    </div>
+                                </div>
+
+                                <!-- 통합된 UI 코드 끝 -->
+                            </div>
+
+                        </div>
+
+                        <!-- 📌 거래 내역 탭 -->
+                        <div class="tab-pane fade" id="tab-history" role="tabpanel" aria-labelledby="history-tab">
+
+
+                            <div th:if="${session.SS_USER_NAME == null}" class="text-center">
+                                <dotlottie-player
+                                        src="https://lottie.host/1b4775bb-fb1f-429a-9ab8-cfd92bd6f0c2/Uav25efzRE.lottie"
+                                        background="transparent"
+                                        speed="1"
+                                        style="width: 300px; height: 300px"
+                                        loop
+                                        autoplay
+                                        class="mx-auto d-block"
+                                ></dotlottie-player>
+                                <p class="text-muted mt-3 mb-2">로그인 후 이용 가능한 서비스예요</p>
+                                <p class="text-muted small">서비스 이용을 위해 로그인해 주세요</p>
+                                <a href="/user/login" class="btn btn-outline-primary mt-2 w-auto px-4">로그인 하러 가기</a>
+                            </div>
+
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <!-- 왼쪽: 거래 초기화 버튼 -->
+                                <button id="resetTradeBtn" class="btn btn-outline-danger btn-sm">
+                                    🗑️ 거래 내역 초기화
+                                </button>
+
+                                <!-- 오른쪽: 거래 필터 버튼 -->
+                                <div class="trade-filter-group text-end">
+                                    <button class="active" onclick="loadTradeHistoryWithActive(this, 'ALL')">전체</button>
+                                    <button onclick="loadTradeHistoryWithActive(this, 'BUY')">매수</button>
+                                    <button onclick="loadTradeHistoryWithActive(this, 'SELL')">매도</button>
+                                </div>
+                            </div>
+
+
+
+                            <div class="table-responsive">
+                                <div class="divTable">
+                                    <div class="divTableHeading">
+                                        <div class="divTableRow">
+                                            <div class="divTableHead">체결 시간</div>
+                                            <div class="divTableHead">종목명</div>
+                                            <div class="divTableHead">거래 종류</div>
+                                            <div class="divTableHead">거래 수량</div>
+                                            <div class="divTableHead">거래 단가</div>
+                                            <div class="divTableHead">거래 금액</div>
+                                        </div>
+                                    </div>
+                                    <div class="divTableBody" id="historyTable">
+                                        <div class="divTableRow">
+                                            <div class="divTableCell" colspan="6">데이터를 불러오는 중...</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="/libs/jquery/dist/jquery.min.js"></script>
+<script src="/libs/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+<script src="/libs/apexcharts/dist/apexcharts.min.js"></script>
+<script src="/libs/simplebar/dist/simplebar.js"></script>
+<script src="/js/sidebarmenu.js"></script>
+<script src="/js/app.min.js"></script>
+<!--<script src="/js/dashboard.js"></script>-->
+<script src="https://cdn.jsdelivr.net/npm/iconify-icon@1.0.8/dist/iconify-icon.min.js"></script>
+
+<script src="/js/syDashboard.js"></script>
+
+
+</body>
+
+</html>

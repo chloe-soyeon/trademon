@@ -1,0 +1,188 @@
+/*!* 기본 테이블 스타일 *!*/
+/*.divTable {*/
+/*    display: table;*/
+/*    width: 100%;*/
+/*    border-collapse: collapse;*/
+/*    border: 1px solid #ddd;*/
+/*    font-family: 'Segoe UI', sans-serif;*/
+/*    font-size: 14px;*/
+/*    margin-top: 20px;*/
+/*}*/
+
+/*.divTableHeading {*/
+/*    display: table-header-group;*/
+/*    background-color: #f5f5f5;*/
+/*    border-bottom: 2px solid #ccc;*/
+/*}*/
+
+/*.divTableRow {*/
+/*    display: table-row;*/
+/*}*/
+
+/*.divTableHead,*/
+/*.divTableCell {*/
+/*    display: table-cell;*/
+/*    padding: 12px;*/
+/*    border: 1px solid #e0e0e0;*/
+/*    text-align: center;         !* ✅ 가운데 정렬 *!*/
+/*    vertical-align: middle;     !* ✅ 수직 가운데 정렬 *!*/
+/*}*/
+
+
+/*!* 헤더 텍스트 스타일 *!*/
+/*.divTableHead {*/
+/*    font-weight: bold;*/
+/*    color: #333;*/
+/*    background-color: #f0f0f0;*/
+/*}*/
+
+/*!* 바디 그룹 *!*/
+/*.divTableBody {*/
+/*    display: table-row-group;*/
+/*}*/
+
+/*!* 호버 효과 *!*/
+/*.divTableRow:hover .divTableCell {*/
+/*    background-color: #f9f9f9;*/
+/*}*/
+
+/*!* 푸터 그룹 (필요 시 사용) *!*/
+/*.divTableFoot {*/
+/*    display: table-footer-group;*/
+/*    font-weight: bold;*/
+/*    background-color: #fafafa;*/
+/*    border-top: 2px solid #ccc;*/
+/*}*/
+
+/*.divTableCell.full-width {*/
+/*    display: table-cell;*/
+/*    text-align: center;*/
+/*    font-style: italic;*/
+/*    color: #666;*/
+/*    padding: 16px;*/
+/*    background-color: #fafafa;*/
+
+/*    !* table-cell 병합처럼 보이도록 6칸 span *!*/
+/*    width: 100%;*/
+/*}*/
+
+/* ============================
+   📈 고급 증권사 스타일 테이블
+   ============================ */
+
+.divTable {
+    display: table;
+    width: 100%;
+    border-collapse: collapse;
+    border: 1px solid #d1d1d1;
+    font-family: 'Segoe UI', 'Roboto', sans-serif;
+    font-size: 15px;
+    color: #2c3e50;
+    background-color: #ffffff;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.03);
+    margin-top: 24px;
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+.divTableHeading {
+    display: table-header-group;
+    background: linear-gradient(to right, #1e3468, #29497b);
+    color: #ffffff;
+    font-weight: 600;
+}
+
+.divTableRow {
+    display: table-row;
+}
+
+.divTableHead,
+.divTableCell {
+    display: table-cell;
+    padding: 14px 12px;
+    border-bottom: 1px solid #e5e5e5;
+    text-align: center;
+    vertical-align: middle;
+}
+
+/* 헤더 셀 */
+.divTableHead {
+    font-size: 15px;
+    letter-spacing: 0.5px;
+}
+
+/* 바디 그룹 */
+.divTableBody {
+    display: table-row-group;
+}
+
+/* 짝수 줄 배경 */
+.divTableBody .divTableRow:nth-child(even) {
+    background-color: #f8f9fc;
+}
+
+/* 호버 효과 */
+.divTableRow:hover .divTableCell {
+    background-color: #eef3fa;
+}
+
+/* 푸터 그룹 (선택적으로 사용 가능) */
+.divTableFoot {
+    display: table-footer-group;
+    font-weight: bold;
+    background-color: #f4f6f9;
+    border-top: 2px solid #ccc;
+}
+
+/* 전체 병합 셀 */
+.divTableCell.full-width {
+    display: table-cell;
+    text-align: center;
+    font-style: italic;
+    color: #888;
+    padding: 18px;
+    background-color: #f9f9f9;
+    width: 100%;
+}
+
+/* 강조 텍스트 */
+.divTableCell.positive {
+    color: #e74c3c;
+    font-weight: 600;
+}
+
+.divTableCell.negative {
+    color: #3498db;
+    font-weight: 600;
+}
+
+.trade-filter-group {
+    display: inline-flex;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    overflow: hidden;
+    background-color: #fff;
+}
+
+.trade-filter-group button {
+    background-color: white;
+    border: none;
+    padding: 8px 18px;
+    font-size: 14px;
+    color: #333;
+    font-weight: 500;
+    transition: background-color 0.2s, color 0.2s;
+    border-right: 1px solid #ccc;
+    min-width: 70px;
+}
+
+.trade-filter-group button:last-child {
+    border-right: none;
+}
+
+.trade-filter-group button.active {
+    background-color: #1e3468;
+    color: white;
+    font-weight: 600;
+}
+

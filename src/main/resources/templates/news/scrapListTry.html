@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>스크랩한 뉴스</title>
+  <link rel="stylesheet" href="/css/styles.min.css"/>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <style>
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      padding-top: 50px;
+    }
+
+    .news-card {
+      border: 1px solid #ddd;
+      border-radius: 10px;
+      padding: 15px;
+      margin-bottom: 20px;
+      background-color: #fdfdfd;
+      position: relative;
+    }
+
+    .note-content {
+      background-color: #f1f3f5;
+      padding: 10px;
+      border-radius: 5px;
+      font-size: 14px;
+      margin-top: 10px;
+    }
+
+    .btn-back {
+      margin-bottom: 30px;
+      font-size: 14px;
+      background-color: #1c2e61;
+      color: white;
+      padding: 8px 16px;
+      border: none;
+      border-radius: 5px;
+      text-decoration: none;
+    }
+
+    .btn-back:hover {
+      background-color: #142043;
+    }
+
+    .bookmark-btn {
+      position: absolute;
+      right: 15px;
+      top: 15px;
+      font-size: 20px;
+      cursor: pointer;
+      color: gold;
+    }
+
+    html, body {
+      height: auto;
+      min-height: 100%;
+      overflow-y: auto;
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <h2>📌 스크랩한 뉴스 목록</h2>
+
+  <div style="text-align: right;">
+    <a href="/news" class="btn-back">← 뉴스 검색으로 돌아가기</a>
+  </div>
+
+  <div th:if="${scrapList != null}">
+    <div th:each="news : ${scrapList}" class="news-card" th:attr="id=${news.newsId}">
+      <!-- 🟡 별 버튼 (스크랩 취소) -->
+      <div class="bookmark-btn" th:attr="data-id=${news.newsId}" onclick="removeScrap(this)">★</div>
+
+      <div>
+        <strong th:text="${news.title}">뉴스 제목</strong>
+      </div>
+      <div class="mt-2">
+        <a th:href="${news.url}" target="_blank" class="btn btn-outline-primary btn-sm">원문 보기</a>
+      </div>
+      <div class="note-content" th:if="${news.note != null and !#strings.isEmpty(news.note)}">
+        <strong>📝 메모:</strong>
+        <div th:text="${news.note}">메모 내용</div>
+      </div>
+    </div>
+  </div>
+
+  <div th:if="${scrapList == null or #lists.isEmpty(scrapList)}">
+    <p class="text-muted">아직 스크랩한 뉴스가 없습니다.</p>
+  </div>
+</div>
+
+<script>
+  function removeScrap(elem) {
+    const newsId = elem.getAttribute("data-id");
+
+    fetch('/news/delete', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ newsId: newsId })
+    }).then(res => {
+      if (res.status === 200) {
+        Swal.fire({
+          icon: 'success',
+          title: '스크랩 삭제 완료!',
+          confirmButtonColor: '#1c2e61'
+        });
+        document.getElementById(newsId).remove();
+      } else {
+        Swal.fire({
+          icon: 'error',
+          title: '삭제 실패',
+          text: '다시 시도해 주세요.',
+          confirmButtonColor: '#1c2e61'
+        });
+      }
+    });
+  }
+</script>
+</body>
+</html>
